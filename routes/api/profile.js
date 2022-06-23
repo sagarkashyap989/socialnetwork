@@ -12,7 +12,7 @@ router.get("/me", auth, async (req, res) => {
     console.log(req.user.id);
     console.log("^^^");
     try {
-        const profile = await Profile.findOne({user : req.body.id}).populate("users", 
+        const profile = await Profile.findOne({user : req.user.id}).populate("user", 
         ["name", "avatar"]);
         if(!profile){
             return res.status(400).json({msg: "there is no such  user exist"});
@@ -49,15 +49,15 @@ router.post("/",
             }
             console.log(req.body);
             
-            const {user, company, website, location, status, skills, bio, githubUsername , date} = req.body;
+            const { company, website, location, status, skills, bio, githubUsername , date} = req.body;
             const profileFields ={};
-            profileFields.user = req.body.id;
-            if(company) profileFields.company= req.body.company;
-            if(website) profileFields.website= req.body.website;
-            if(location) profileFields.location = req.body.location;
-            if(status) profileFields.status = req.body.status;
-            if(bio) profileFields.bio = req.body.bio;
-            if(githubUsername) profileFields.githubUsername = req.body.githubUsername;
+            profileFields.user = req.user.id;
+            if(company) profileFields.company= company;
+            if(website) profileFields.website= website;
+            if(location) profileFields.location = location;
+            if(status) profileFields.status = status;
+            if(bio) profileFields.bio = bio;
+            if(githubUsername) profileFields.githubUsername = githubUsername;
             if(skills) profileFields.skills= skills.split(",").map(skill => skill.trim());
 
 
@@ -92,7 +92,7 @@ router.post("/",
 
 router.get("/", async(req, res)=> {
     try {
-        const profiles = await Profile.find().populate("user");
+        const profiles = await Profile.find().populate("user", ["name", "avatar"]);
         res.json(profiles);
     } catch (error) {
         console.log(error.message);
@@ -101,4 +101,26 @@ router.get("/", async(req, res)=> {
 });
 
 
+
+//@route    GET api/profile
+//@desc     get all profiles
+//@access   public 
+
+router.get("/:user_id", async(req, res)=>{
+    try {
+        const profile = await Profile.findOne({user: req.params.user_id}).populate("user",["name", "avatar"] );
+        if(!profile){
+           return res.status(400).json("user not found");
+        }
+        res.json(profile)
+    } catch (error) {
+        console.log(error.message);
+        if(error.kind == 'ObjectId'){
+            return res.status(400).json("user not found");
+
+        }
+        res.status(500).send("sever error");
+    }
+
+})
 module.exports = router;
