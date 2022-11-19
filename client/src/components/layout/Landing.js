@@ -1,6 +1,9 @@
-import React from 'react'
+import React, {useState} from 'react'
 
 function Landing() {
+
+
+
     return (
         <section className="landing">
       <div className="dark-overlay">
@@ -20,4 +23,4 @@ function Landing() {
     );
 }
 
-export default Landing
+export default Landing;
