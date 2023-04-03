@@ -22,11 +22,16 @@ router.post('/',[
                 ).isLength({ min:6 })
             ], 
     async (req, res) => {
+
+        // console.log(req.body);
+        // console.log(req.body.name, "name");
+        // console.log(req.body.email, "email");
+        // console.log(req.body.password, "password");
         const errors = validationResult(req);
+        console.log(errors, "line 31");
     if(!errors.isEmpty()){
         return res.status(400).json({ errors: errors.array()});
     }
-    console.log(req.body);
 
     const {name, email, password} = req.body;
 

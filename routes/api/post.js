@@ -6,6 +6,13 @@ const Post = require("../../model/Post");
 const Profile = require("../../model/Profile");
 const User = require("../../model/User");
 
+
+// String.prototype.toObjectId = function() {
+//   var ObjectId = (require('mongoose').Types.ObjectId);
+//   return new ObjectId(this.toString());
+// };
+
+
 //@route    POST api/post
 //@desc     post a text
 //@access   Public 
@@ -33,7 +40,7 @@ router.post("/",[auth,
     res.json(post);
 
   } catch (error) {
-    console.log(error.message);
+    //console.log(error.message);
     res.status(500).send("server error");
   }
 });
@@ -51,7 +58,7 @@ router.get("/", auth,   async(req ,res) => {
     res.json(posts);
 
   } catch (error) {
-    console.log(error.message);
+    //console.log(error.message);
     res.status(500).send("server error");
   }
  
@@ -66,19 +73,22 @@ router.get("/", auth,   async(req ,res) => {
 //@desc     get all posts
 //@access   Private
 router.get("/:id", auth,   async(req ,res) => {
-  console.log(req.params.id);
+  console.log(req.params.id, "************");
+
+console.log(req.body)
+
   try {
 
     const post = await Post.findById(req.params.id);
     if(!post){
-      res.status(404).json({msg: "Post not found"});
+     return res.status(404).json({msg: "Post not found"});
     }
     res.json(post);
 
   } catch (error) {
-    console.log(error.message);
+    //console.log(error.message);
     if(error.kind === "ObjectId"){
-      res.status(404).json({msg: "Post not found"});
+     return  res.status(404).json({msg: "Post not found"});
     }
     res.status(500).send("server error");
   }
@@ -96,7 +106,7 @@ router.get("/:id", auth,   async(req ,res) => {
 //@desc     delete a post 
 //@access   Private 
 router.delete("/:id", auth,   async(req ,res) => {
-  console.log(req.params.id);
+  //console.log(req.params.id);
   try {
 
     const post = await Post.findById(req.params.id);
@@ -110,7 +120,7 @@ router.delete("/:id", auth,   async(req ,res) => {
     post.remove();
     res.json({msg : "post removed"});
   } catch (error) {
-    console.log(error.message);
+    //console.log(error.message);
     if(error.kind === "ObjectId"){
       res.status(404).json({msg: "Post not found"});
     }
@@ -126,9 +136,11 @@ router.delete("/:id", auth,   async(req ,res) => {
 //@access   Private 
 
 router.put("/like/:id", auth, async (req, res) => {
-   try {
+  // console.log(req.params.id, "   &&&& ", req.params.id.toObjectId())
+  console.log(req.params.id, "hellooo");
+  try {
+     const post = await Post.findById(req.params.id);
 
-    const post = await Post.findById(req.params.id);
     if(!post){
       res.status(404).json({msg: "Post not found"});
     }
@@ -146,7 +158,7 @@ router.put("/like/:id", auth, async (req, res) => {
   } catch (error) {
     console.log(error.message);
     if(error.kind === "ObjectId"){
-      res.status(404).json({msg: "Post not found"});
+     return res.status(404).json({msg: "Post not found"});
     }
     res.status(500).send("server error");
   }
@@ -168,7 +180,9 @@ router.put("/unlike/:id", auth, async (req, res) => {
   try {
 
    const post = await Post.findById(req.params.id);
+   console.log(post);
    if(!post){
+    console.log("page notfound")
      res.status(404).json({msg: "Post not found"});
    }
    
@@ -177,7 +191,7 @@ router.put("/unlike/:id", auth, async (req, res) => {
    }
 
 // get removeIndex
-    const removeIndex = Post.likes.map(like => like.user.toString()).indexOf(req.user.id);
+    const removeIndex = post.likes.map(like => like.user.toString()).indexOf(req.user.id);
     post.likes.splice(removeIndex, 1); 
 
 
@@ -214,6 +228,8 @@ router.put("/comment/:id",[auth,
    .isEmpty()
   ]], async (req, res) => {
       const errors = validationResult(req);
+      console.log(req.body,'request body......')
+
       if(!errors.isEmpty){
           return res.status(400).json({errors: errors.array() });
       }
@@ -222,7 +238,7 @@ router.put("/comment/:id",[auth,
   
       const user = await User.findById(req.user.id).select("-password");
       const post = await Post.findById(req.params.id);
-
+      console.log(user.name)
       const newComment =  {
           text: req.body.text,
           name: user.name,
@@ -254,7 +270,7 @@ router.delete("/comment/:id/:comment_id",auth, async (req, res) => {
 
     //find comment to be delete
     const comment = post.comments.find(comment => comment.id === req.params.comment_id);
-    console.log(comment);
+    //console.log(comment);
     //make sure comment exist
     if(!comment){
       return res.status(404).json({msg: 'comment not found'});
@@ -273,7 +289,7 @@ router.delete("/comment/:id/:comment_id",auth, async (req, res) => {
     res.json(post.comments);
 
   } catch (error) {
-    console.log(error.message);
+    //console.log(error.message);
     res.status(500).send("server error");
     
   }

@@ -1,6 +1,9 @@
 // This is just to connect to mngoDB atlas database
+
 const mongoose = require("mongoose");
+// import mongoose from "mongoose"
 const config = require("config");
+// import config from "config"
 const db = config.get("mongoURI");
 
 const connectDB = async () => {
@@ -13,5 +16,7 @@ const connectDB = async () => {
         process.exit(1);
     }
 }
+
+// export default connectDB
 
 module.exports = connectDB;

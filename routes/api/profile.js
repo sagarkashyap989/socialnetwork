@@ -1,8 +1,22 @@
+
 const express = require("express");
+
+String.prototype.toObjectId = function() {
+    var ObjectId = (require('mongoose').Types.ObjectId);
+    return new ObjectId(this.toString());
+  };
+
+
+// import express from "express"
 const router = express.Router();
-const {check, validationResult} = require("express-validator");
+
+const {check, validationResult} =  require("express-validator");
+// import normalizeUrl from 'normalize-url';
+// const normalize = require('./example.mjs');
+
 
 const config = require("config");
+
 const request = require("request");
 const mongoose = require("mongoose");
 const auth = require("../../middleware/auth");
@@ -14,14 +28,14 @@ const { compareSync } = require("bcryptjs");
 //@desc     Test route
 //@access   private 
 router.get("/me", auth, async (req, res) => {
-    console.log(req.user.id);
-    console.log("^^^");
+   
     try {
         const profile = await Profile.findOne({user : req.user.id}).populate("user", 
         ["name", "avatar"]);
         if(!profile){
             return res.status(400).json({msg: "there is no such  user exist"});
         }
+
         res.json(profile);
     } catch (error) {
         console.log(error);
@@ -47,14 +61,18 @@ router.post("/",
 
      ]
     ], async (req, res) => {
-        
              const errors = validationResult(req);
             if(!errors.isEmpty()){
+                console.log(errors)
                 return res.status(400).json({ errors: errors.array()});
             }
-            console.log(req.body);
+            // console.log("errors",errors, "errors");
+            // console.log("req.body",req.body, "req.body");
             
-            const { company, website, location, status, skills, bio, githubUsername , date} = req.body;
+            const { company, website, location, status, skills, bio, githubusername , date,  youtube, twitter, instagram, linkedin, facebook} = req.body;
+            
+            const socialFields = { youtube, twitter, instagram, linkedin, facebook };
+            
             const profileFields ={};
             profileFields.user = req.user.id;
             if(company) profileFields.company= company;
@@ -62,30 +80,33 @@ router.post("/",
             if(location) profileFields.location = location;
             if(status) profileFields.status = status;
             if(bio) profileFields.bio = bio;
-            if(githubUsername) profileFields.githubUsername = githubUsername;
+            if(githubusername) profileFields.githubusername = githubusername;
             if(skills) profileFields.skills= skills.split(",").map(skill => skill.trim());
+            
+             profileFields.social = socialFields;
 
+            // const socialFields = { youtube, twitter, instagram, linkedin, facebook };
+
+            // normalize social fields to ensure valid url
+            // for (const [key, value] of Object.entries(socialFields)) {
+            //   if (value && value.length > 0)
+            //     socialFields[key] = normalize(value, { forceHttps: true });
+            // }
+            // // add to profileFields
+            // profileFields.social = socialFields;
 
             try {
-                let profile = await Profile.findOne({user: req.body.user});
-                if(profile){
-                    //update
-                    profile = await Profile.findOneAndUpdate(
-                        { user: req.user.id},
-                        { $set: profileFields },
-                        { new: true}
-                    );
-                    return res.json(profile);
-                }                
-                profile = new Profile(profileFields);
-
-                await profile.save();
-                res.json(profile);
-            } catch (error) {
-
-                console.log(error);
-                res.status(500).send("server error");
-            }
+                // Using upsert option (creates new doc if no match is found):
+                let profile = await Profile.findOneAndUpdate(
+                  { user: req.user.id },
+                  { $set: profileFields },
+                  { new: true, upsert: true, setDefaultsOnInsert: true }
+                );
+                return res.json(profile);
+              } catch (err) {
+                console.error(err.message);
+                return res.status(500).send('Server Error');
+              }
 
 
         }
@@ -113,6 +134,7 @@ router.get("/", async(req, res)=> {
 
 router.get("/:user_id", async(req, res)=>{
     try {
+        console.log(req.params.user_id)
         const profile = await Profile.findOne({user: req.params.user_id}).populate("user",["name", "avatar"] );
         if(!profile){
            return res.status(400).json("user not found");
@@ -164,6 +186,7 @@ router.put("/experience", [ auth , [
             async (req, res)=>{
                 const errors = validationResult(req);
                 if(!errors.isEmpty()){
+                   
                     return res.status(400).json({errors : errors.array});
                 }
               const {
@@ -240,9 +263,8 @@ router.put("/experience/:exp_id", auth, async (req, res)=>{
         if(to) profile.experience[updateIndex].to = to;
         if(current) profile.experience[updateIndex].current = current;
         if(description) profile.experience[updateIndex].description  = description;
-        
-        console.log(profile);
-        
+       
+
 
         profile.save();
         res.json(profile);
@@ -276,9 +298,11 @@ router.put("/education", [ auth , [
         .isEmpty(),
   ]], 
 async (req, res)=>{
+    
     const errors = validationResult(req);
+    console.log(errors);
     if(!errors.isEmpty()){
-      return res.status(400).json({errors : errors.array});
+      return res.status(400).json({ errors: errors.array()});
     }
     const {
         school,
@@ -318,7 +342,11 @@ async (req, res)=>{
 router.delete("/education/:edu_id", auth, async (req, res)=>{
 
 try {
-    const profile = await Profile.findOne({user : req.user.id});
+    const profile = await Profile.findOne({user :  req.user.id.toObjectId()});
+    
+// var query = { campaign_id: new ObjectId(campaign._id) };
+//     console.log( `ObjectId('${req.user.id}')`);
+console.log( req.user.id.toObjectId())
     const removeIndex = profile.education
    .map(item => item._id.valueOf())
     .indexOf(req.params.exp_id);

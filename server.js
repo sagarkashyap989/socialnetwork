@@ -1,16 +1,19 @@
+
 const express = require("express");
 // const mongoose = require("mongoose");
+
 const connectDB = require("./config/db");
 
 const app = express();
 
 // connect to database
 connectDB();
-
 // Init Middleware
 app.use( express.json({ extended: false }));
 
-app.get("/", (req, res) => res.send("API runing"));
+app.get("/", (req, res) =>{ 
+    console.log("API running");
+    res.send("API runing")});
 
  
 //Define routes

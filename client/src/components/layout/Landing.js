@@ -1,8 +1,16 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
+import { Link, useNavigate } from 'react-router-dom';
+import {connect } from "react-redux";
+import {setName} from "../../state/action-creator/name"
+function Landing({setName, isAuthenticated}) {
 
-function Landing() {
-
-
+  const navigate= useNavigate();
+    useEffect(() => {
+    if(isAuthenticated){
+      navigate("/dashboard");
+    }
+    }, [isAuthenticated])
+    
 
     return (
         <section className="landing">
@@ -14,8 +22,8 @@ function Landing() {
             other developers
           </p>
           <div className="buttons">
-            <a href="register.html" className="btn btn-primary">Sign Up</a>
-            <a href="login.html" className="btn btn-light">Login</a>
+            <Link to="/register" className="btn btn-primary">Sign Up</Link>
+            <Link to="/login" className="btn btn-light">Login</Link>
           </div>
         </div>
       </div>
@@ -23,4 +31,9 @@ function Landing() {
     );
 }
 
-export default Landing;
+
+const mapStateToProps = state=>({
+  isAuthenticated : state.auth.isAuthenticated
+})
+
+export default connect(mapStateToProps,{setName}) (Landing);
