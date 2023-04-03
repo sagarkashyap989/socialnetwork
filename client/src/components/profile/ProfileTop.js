@@ -26,7 +26,7 @@ const ProfileTop = ({
 <p>{location ? <span>{location}</span> : null}</p>
 <div class="icons my-1">
 
-    {website ? <a key={index} href={social} target="_blank" rel="noopener noreferrer">
+    {website ? <a  href={social} target="_blank" rel="noopener noreferrer">
     <CiGlobe />
                     </a>: null }
 
